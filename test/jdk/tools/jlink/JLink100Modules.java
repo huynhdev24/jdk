@@ -27,7 +27,8 @@ import java.nio.file.Paths;
 import java.util.Arrays;
 import java.util.StringJoiner;
 import java.util.spi.ToolProvider;
-
+import tests.JImageGenerator;
+import tests.JImageGenerator.JLinkTask;
 /*
  * @test
  * @summary Make sure that 100 modules can be linked using jlink.
@@ -111,16 +112,10 @@ public class JLink100Modules {
                 "--module", "bug8240567x"
         });
 
-        jlink(new String[] {
-                "--output",  src.resolve("out-jlink").toString(),
-                "--module-path", out,
-                "--add-modules", "bug8240567x"
-                //"--launcher mylauncher=bug8240567x/testpackage.JLink100ModulesTest"
-        });
-
-        // TODO - check if everything works
-
-        throw new Exception();
+        JImageGenerator.getJLinkTask()
+                .modulePath(out)
+                .output(src.resolve("out-jlink"))
+                .addMods("bug8240567x")
+                .call().assertSuccess();
     }
 }
-
