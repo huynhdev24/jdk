@@ -69,15 +69,19 @@ public class JLink100Modules {
         StringJoiner mainModuleInfoContent = new StringJoiner(";\n  requires ", "module bug8240567x {\n  requires ", "\n;}");
 
         // create 100 modules
-        for (int i = 0; i<100; i++) {
+        for (int i = 0; i < 100; i++) {
             String name = "module" + i + "x";
             Path moduleDir = Files.createDirectories(src.resolve(name));
-            StringJoiner subModuleInfoContent =
-                    new StringJoiner(";\n  requires ", "module " + name + "{\n  requires ", "\n;}");
-            for (int j = 0; i < j; j++) {
-                subModuleInfoContent.add("module" + j + "x");
+            
+            StringBuilder builder = new StringBuilder("module ");
+            builder.append(name).append(" {");
+
+            for (int j = 0; j < i; j++) {
+                builder.append("requires module" + j + "x;");
+                System.out.println("Creating submodule " + i + " i and j " + j + " " + builder.toString());   
             }
-            Files.writeString(moduleDir.resolve("module-info.java"), subModuleInfoContent.toString());
+            builder.append("}\n");
+            Files.writeString(moduleDir.resolve("module-info.java"), builder.toString());
             mainModuleInfoContent.add(name);
         }
 
