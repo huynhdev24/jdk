@@ -72,13 +72,12 @@ public class JLink100Modules {
         for (int i = 0; i < 100; i++) {
             String name = "module" + i + "x";
             Path moduleDir = Files.createDirectories(src.resolve(name));
-            
+
             StringBuilder builder = new StringBuilder("module ");
             builder.append(name).append(" {");
 
             for (int j = 0; j < i; j++) {
                 builder.append("requires module" + j + "x;");
-                System.out.println("Creating submodule " + i + " i and j " + j + " " + builder.toString());   
             }
             builder.append("}\n");
             Files.writeString(moduleDir.resolve("module-info.java"), builder.toString());
