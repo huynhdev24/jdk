@@ -696,7 +696,6 @@ public final class SystemModulesPlugin extends AbstractPlugin {
          * Generate bytecode for moduleDescriptors method
          */
         private void genModuleDescriptorsMethod(ClassWriter cw) {
-
             int helperMethodCount = 0;
             final String helperMethodNamePrefix = "moduleDescriptorsSub";
 
@@ -746,7 +745,7 @@ public final class SystemModulesPlugin extends AbstractPlugin {
             pushInt(mv, moduleInfos.size());
             mv.visitTypeInsn(ANEWARRAY, "java/lang/module/ModuleDescriptor");
             mv.visitVarInsn(ASTORE, MD_VAR);
-         
+
             for (int index = 0; index < helperMethodCount; index++) {
                 // create call to helperMethod{i}
                 mv.visitVarInsn(ALOAD, 0);

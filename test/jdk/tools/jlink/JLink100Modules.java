@@ -69,7 +69,7 @@ public class JLink100Modules {
 
         StringJoiner mainModuleInfoContent = new StringJoiner(";\n  requires ", "module bug8240567x {\n  requires ", "\n;}");
 
-        // create 100 modules
+        // create 100 modules. With this naming schema up to 130 seem to work
         for (int i = 0; i < 100; i++) {
             String name = "module" + i + "x";
             Path moduleDir = Files.createDirectories(src.resolve(name));
