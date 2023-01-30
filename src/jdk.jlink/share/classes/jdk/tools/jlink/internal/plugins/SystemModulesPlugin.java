@@ -699,12 +699,21 @@ public final class SystemModulesPlugin extends AbstractPlugin {
             int helperMethodCount = 0;
             final String helperMethodNamePrefix = "moduleDescriptorsSub";
 
-            // The method is "manually split" based on the heuristics that 70 ModuleDescriptors are smaller than 64kb
+            // The method is "manually split" based on the heuristics that 90 ModuleDescriptors are smaller than 64kb
             // The number 90 is chosen "randomly" to be below the 64kb limit of a method
             // 99 does not work - see https://bugs.openjdk.org/browse/JDK-8246197
             for (int index = 0; index < moduleInfos.size(); index++) {
                 if (index % 90 == 0) {
                     // finish last helper method
+                    if (helperMethodCount > 1) {
+                        // call previous helper method (if it exists)
+                        mv.visitVarInsn(ALOAD, 0);
+                        mv.visitVarInsn(ALOAD, MD_VAR);
+                        mv.visitMethodInsn(INVOKEVIRTUAL, this.className,
+                                helperMethodNamePrefix + (helperMethodCount-2),
+                                "(" + MODULE_DESCRIPTOR_ARRAY_SIGNATURE + ")V",
+                                false);
+                    }
                     if (helperMethodCount > 0) {
                         mv.visitInsn(RETURN);
                         mv.visitMaxs(0, 0);
@@ -728,9 +737,17 @@ public final class SystemModulesPlugin extends AbstractPlugin {
                         minfo.packages(),
                         index).build();
             }
-
             // finish last helper method
             // same code as above
+            if (helperMethodCount > 1) {
+                // call previous helper method
+                mv.visitVarInsn(ALOAD, 0);
+                mv.visitVarInsn(ALOAD, MD_VAR);
+                mv.visitMethodInsn(INVOKEVIRTUAL, this.className,
+                        helperMethodNamePrefix + (helperMethodCount-2),
+                        "(" + MODULE_DESCRIPTOR_ARRAY_SIGNATURE + ")V",
+                        false);
+            }
             mv.visitInsn(RETURN);
             mv.visitMaxs(0, 0);
             mv.visitEnd();
@@ -746,15 +763,13 @@ public final class SystemModulesPlugin extends AbstractPlugin {
             mv.visitTypeInsn(ANEWARRAY, "java/lang/module/ModuleDescriptor");
             mv.visitVarInsn(ASTORE, MD_VAR);
 
-            for (int index = 0; index < helperMethodCount; index++) {
-                // create call to helperMethod{i}
-                mv.visitVarInsn(ALOAD, 0);
-                mv.visitVarInsn(ALOAD, MD_VAR);
-                mv.visitMethodInsn(INVOKEVIRTUAL, this.className,
-                        helperMethodNamePrefix + index,
-                        "(" + MODULE_DESCRIPTOR_ARRAY_SIGNATURE + ")V",
-                        false);
-            }
+            // create call to helperMethod{i}
+            mv.visitVarInsn(ALOAD, 0);
+            mv.visitVarInsn(ALOAD, MD_VAR);
+            mv.visitMethodInsn(INVOKEVIRTUAL, this.className,
+                    helperMethodNamePrefix + (helperMethodCount-1),
+                    "(" + MODULE_DESCRIPTOR_ARRAY_SIGNATURE + ")V",
+                    false);
 
             mv.visitVarInsn(ALOAD, MD_VAR);
             mv.visitInsn(ARETURN);
