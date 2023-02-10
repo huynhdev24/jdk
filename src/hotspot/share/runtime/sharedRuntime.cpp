@@ -234,7 +234,21 @@ const julong double_sign_mask = CONST64(0x7FFFFFFFFFFFFFFF);
 const julong double_infinity  = CONST64(0x7FF0000000000000);
 
 JRT_LEAF(jfloat, SharedRuntime::frem(jfloat  x, jfloat  y))
-#ifdef _WIN64
+#if defined(__x86_64__) || defined(__i386__)
+// see SharedRuntime::drem
+  jfloat retval;
+  asm ("\
+1:               \n\
+fprem            \n\
+fnstsw %%ax      \n\
+test   $0x4,%%ah \n\
+jne    1b        \n\
+"
+    :"=t"(retval)
+    :"0"(x), "u"(y)
+    :"cc", "ax");
+  return retval;
+#elif defined(_WIN64)
   // 64-bit Windows on amd64 returns the wrong values for
   // infinity operands.
   union { jfloat f; juint i; } xbits, ybits;
@@ -253,7 +267,22 @@ JRT_END
 
 
 JRT_LEAF(jdouble, SharedRuntime::drem(jdouble x, jdouble y))
-#ifdef _WIN64
+#if defined(__x86_64__) || defined(__i386__)
+// Java bytecode drem is defined as C fmod (not C drem==remainder).
+// GCC since 93ba85fdd253b4b9cf2b9e54e8e5969b1a3db098 has slow fmod().
+  jdouble retval;
+  asm ("\
+1:               \n\
+fprem            \n\
+fnstsw %%ax      \n\
+test   $0x4,%%ah \n\
+jne    1b        \n\
+"
+    :"=t"(retval)
+    :"0"(x), "u"(y)
+    :"cc", "ax");
+  return retval;
+#elif defined(_WIN64)
   union { jdouble d; julong l; } xbits, ybits;
   xbits.d = x;
   ybits.d = y;
